@@ -4,12 +4,13 @@ namespace NFePHP\Common\Files;
 
 /**
  * Classe auxiliar para criar, listar e testar os diretórios utilizados pela API
- * @category   NFePHP
- * @package    NFePHP\Common\Files
- * @copyright  Copyright (c) 2008-2015
- * @license    http://www.gnu.org/licenses/lesser.html LGPL v3
- * @author     Roberto L. Machado <linux.rlm at gmail dot com>
- * @link       http://github.com/nfephp-org/nfephp for the canonical source repository
+ *
+ * @category  NFePHP
+ * @package   NFePHP\Common\Files
+ * @copyright Copyright (c) 2008-2015
+ * @license   http://www.gnu.org/licenses/lesser.html LGPL v3
+ * @author    Roberto L. Machado <linux.rlm at gmail dot com>
+ * @link      http://github.com/nfephp-org/nfephp for the canonical source repository
  */
 
 use NFePHP\Common\Exception;
@@ -36,12 +37,14 @@ class FilesFolders
         'temporarias',
         'recebidas',
         'consultadas',
-        'pdf'
+        'pdf',
+        'csc'
     );
     
     /**
      * getAmbiente
-     * @param string $tpAmb
+     *
+     * @param  string $tpAmb
      * @return string
      */
     public static function getAmbiente($tpAmb = '2')
@@ -54,11 +57,10 @@ class FilesFolders
     
     /**
      * getFilePath
-     * @param string $tpAmb
-     * @param string $dirbase
-     * @param string $subdir
+     * @param  string $tpAmb
+     * @param  string $dirbase
+     * @param  string $subdir
      * @return string
-     * @throws Exception\RuntimeException
      */
     public static function getFilePath($tpAmb = '2', $dirbase = '', $subdir = '')
     {
@@ -67,22 +69,25 @@ class FilesFolders
             . self::getAmbiente($tpAmb)
             . DIRECTORY_SEPARATOR
             . $subdir;
-        
-        if (! is_dir($path)) {
-            $msg = "Não existe o diretorio $path !";
-            throw new Exception\RuntimeException($msg);
-        }
+        if (!is_dir($path)) {
+            if (!mkdir($path, 0777, true)) {
+                throw new Exception\RuntimeException(
+                    "Não foi possivel criar o diretorio $folder. Verifique as permissões"
+                );
+            }
+        }    
         return $path;
     }
     
     /**
      * createFolders
-     * Cria a estrutura de diretorios para a guarda dos arquivos 
-     * @param string $dirPath path do diretorio a ser criado
+     * Cria a estrutura de diretorios para a guarda dos arquivos
+     *
+     * @param  string $dirPath path do diretorio a ser criado
      * @return boolean
      * @throws Exception\RuntimeException
      */
-    public static function createFolders($dirPath = '')
+    public static function createFolders($dirPath)
     {
         //monta a arvore de diretórios necessária e estabelece permissões de acesso
         self::createFolder($dirPath);
@@ -99,10 +104,10 @@ class FilesFolders
     
     /**
      * createFolder
-     * @param string $folder
+     * @param  string $folder
      * @throws Exception\RuntimeException
      */
-    public static function createFolder($folder = '')
+    public static function createFolder($folder)
     {
         if (! is_dir($folder)) {
             if (! mkdir($folder, 0777)) {
@@ -115,9 +120,9 @@ class FilesFolders
     
     /**
      * saveFile
-     * @param string $path
-     * @param string $filename
-     * @param string $content
+     * @param  string $path
+     * @param  string $filename
+     * @param  string $content
      * @return boolean
      */
     public static function saveFile($path = '', $filename = '', $content = '')
@@ -136,9 +141,9 @@ class FilesFolders
     /**
      * listDir
      * Obtem todo o conteúdo de um diretorio, e que atendam ao critério indicado.
-     * @param string $dir Diretorio a ser pesquisado
-     * @param string $fileMatch Critério de seleção pode ser usados coringas como *-nfe.xml
-     * @param boolean $retpath se true retorna o path completo dos arquivos se false so retorna o nome dos arquivos
+     * @param  string  $dir       Diretorio a ser pesquisado
+     * @param  string  $fileMatch Critério de seleção pode ser usados coringas como *-nfe.xml
+     * @param  boolean $retpath   se true retorna o path completo dos arquivos se false so retorna o nome dos arquivos
      * @return array com os nome dos arquivos que atendem ao critério estabelecido ou false
      * @throws Exception\InvalidArgumentException
      */
@@ -174,9 +179,10 @@ class FilesFolders
     /**
      * Rotina para teste de escrita no path especificado
      * Usada na rotina de configuração (install.php)
-     * @param string $path
-     * @param string $message
-     * @param string $respHtml passado por referencia irá conter a resposta em html
+     *
+     * @param  string $path
+     * @param  string $message
+     * @param  string $respHtml passado por referencia irá conter a resposta em html
      * @return boolean
      */
     public static function writeTest($path = '', $message = '', &$respHtml = '')
@@ -206,7 +212,8 @@ class FilesFolders
     
     /**
      * Apaga um diretorio e todo o seu conteúdo
-     * @param string $dirPath
+     *
+     * @param  string $dirPath
      * @return boolean
      * @throws Exception\RuntimeException
      */
@@ -233,7 +240,8 @@ class FilesFolders
     
     /**
      * readFile
-     * @param string $pathFile
+     *
+     * @param  string $pathFile
      * @return string
      * @throws Exception\InvalidArgumentException
      * @throws Exception\RuntimeException
@@ -257,7 +265,8 @@ class FilesFolders
     
     /**
      * removeFile
-     * @param string $pathFile
+     *
+     * @param  string $pathFile
      * @return boolean
      */
     public static function removeFile($pathFile = '')
