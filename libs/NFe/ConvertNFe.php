@@ -1983,7 +1983,7 @@ class ConvertNFe
      */
     protected function q05Entity($aCampos)
     {
-        //Q05|CST|
+        //Q05|CST|vPIS|
         $this->linhaQ[1] = $aCampos[1]; //cst
         $this->linhaQ[2] = ''; //vBC
         $this->linhaQ[3] = ''; //pPIS
@@ -2000,10 +2000,9 @@ class ConvertNFe
      */
     protected function q07Entity($aCampos)
     {
-        //Q07|vBC|pPIS|vPIS|
+        //Q07|vBC|pPIS|
         $this->linhaQ[2] = $aCampos[1]; //vBC
         $this->linhaQ[3] = $aCampos[2]; //pPIS
-        $this->linhaQ[4] = $aCampos[3]; //vPIS
         $this->zLinhaQEntity($this->linhaQ);
     }
     
@@ -2890,7 +2889,6 @@ class ConvertNFe
     /**
      * zArray2xml
      * Converte uma Nota Fiscal em um array de txt em um xml
-     *
      * @param  array $aDados
      * @return string
      * @throws Exception\RuntimeException
@@ -2898,7 +2896,8 @@ class ConvertNFe
     protected function zArray2xml($aDados = array())
     {
         foreach ($aDados as $dado) {
-            $aCampos = $this->zClean(explode("|", $dado));
+            $aCampos = explode("|", $dado);
+            array_walk_recursive($aCampos, '\NFePHP\NFe\ConvertNFe::clearFieldString');
             $metodo = strtolower(str_replace(' ', '', $aCampos[0])).'Entity';
             if (! method_exists($this, $metodo)) {
                 $msg = "O txt tem um metodo não definido!! $dado";
@@ -2907,22 +2906,19 @@ class ConvertNFe
             $this->$metodo($aCampos);
         }
     }
-    
+
     /**
-     * zClean
-     * Efetua limpeza dos campos
-     *
-     * @param  array $aCampos
-     * @return array
+     * Clear the string of unwanted characters
+     * Will remove all duplicated spaces and if wanted
+     * replace all accented characters by their originals
+     * and all the special ones
+     * @param string $field string to be cleaned
      */
-    protected function zClean($aCampos = array())
+    private function clearFieldString(&$field)
     {
-        foreach ($aCampos as $campo) {
-            $campo = trim(preg_replace('/\s+/', ' ', $campo));
-            if ($this->limparString) {
-                $campo = Strings::cleanString($campo);
-            }
+        $field = trim(preg_replace('/\s+/', ' ', $field));
+        if ($this->limparString) {
+            $field = Strings::cleanString($field);
         }
-        return $aCampos;
     }
 }

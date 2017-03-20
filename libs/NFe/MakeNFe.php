@@ -7,7 +7,7 @@ namespace NFePHP\NFe;
  *
  * @category  NFePHP
  * @package   NFePHP\NFe\MakeNFe
- * @copyright Copyright (c) 2008-2015
+ * @copyright Copyright (c) 2008-2017
  * @license   http://www.gnu.org/licenses/lesser.html LGPL v3
  * @author    Roberto L. Machado <linux.rlm at gmail dot com>
  * @link      http://github.com/nfephp-org/nfephp for the canonical source repository
@@ -70,7 +70,7 @@ class MakeNFe extends BaseMake
     private $compra = ''; //DOMNode
     private $cana = ''; //DOMNode
     // Arrays
-    private $aTotICMSUFDest = array('vFCPUFDest' => '', 'vICMSUFDest' => '', 'vICMSUFRemet' => '');
+    private $aTotICMSUFDest = array('vFCPUFDest' => 0, 'vICMSUFDest' => 0, 'vICMSUFRemet' => 0);
     private $aNFref = array(); //array de DOMNode
     private $aDup = array(); //array de DOMNodes
     private $aPag = array(); //array de DOMNodes
@@ -1273,12 +1273,9 @@ class MakeNFe extends BaseMake
             . "código EAN ou código de barras",
             true
         );
-        
-        if ($this->tpAmb == '2' && $this->mod == '65') {
+        if ($this->tpAmb == '2' && $this->mod == '65' && $nItem == 1) {
             $xProd = 'NOTA FISCAL EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL';
-            // quando for NFCe muda o nome do produto
         }
-        
         $this->dom->addChild(
             $prod,
             "xProd",
@@ -1798,7 +1795,7 @@ class MakeNFe extends BaseMake
         $this->dom->addChild($med, "dFab", $dFab, true, "$identificador [item $nItem] Data de fabricação");
         $this->dom->addChild($med, "dVal", $dVal, true, "$identificador [item $nItem] Data de validade");
         $this->dom->addChild($med, "vPMC", $vPMC, true, "$identificador [item $nItem] Preço máximo consumidor");
-        $this->aMed[$nItem] = $med;
+        $this->aMed[$nItem][] = $med;
         return $med;
     }
     
@@ -2297,24 +2294,24 @@ class MakeNFe extends BaseMake
      * tagICMSSN
      * Tributação ICMS pelo Simples Nacional N10c pai N01
      *
-     * @param  type $nItem
-     * @param  type $orig
-     * @param  type $csosn
-     * @param  type $modBC
-     * @param  type $vBC
-     * @param  type $pRedBC
-     * @param  type $pICMS
-     * @param  type $vICMS
-     * @param  type $pCredSN
-     * @param  type $vCredICMSSN
-     * @param  type $modBCST
-     * @param  type $pMVAST
-     * @param  type $pRedBCST
-     * @param  type $vBCST
-     * @param  type $pICMSST
-     * @param  type $vICMSST
-     * @param  type $vBCSTRet
-     * @param  type $vICMSSTRet
+     * @param type $nItem
+     * @param type $orig
+     * @param type $csosn
+     * @param type $modBC
+     * @param type $vBC
+     * @param type $pRedBC
+     * @param type $pICMS
+     * @param type $vICMS
+     * @param type $pCredSN
+     * @param type $vCredICMSSN
+     * @param type $modBCST
+     * @param type $pMVAST
+     * @param type $pRedBCST
+     * @param type $vBCST
+     * @param type $pICMSST
+     * @param type $vICMSST
+     * @param type $vBCSTRet
+     * @param type $vICMSSTRet
      * @return DOMElement
      */
     public function tagICMSSN(
@@ -2348,19 +2345,19 @@ class MakeNFe extends BaseMake
                     true,
                     "[item $nItem] Código de Situação da Operação Simples Nacional"
                 );
-                    $this->dom->addChild(
-                        $icmsSN,
-                        'pCredSN',
-                        $pCredSN,
-                        true,
-                        "[item $nItem] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
-                    );
-                    $this->dom->addChild(
-                        $icmsSN,
-                        'vCredICMSSN',
-                        $vCredICMSSN,
-                        true,
-                        "[item $nItem] Valor crédito do ICMS que pode ser aproveitado nos termos do art. 23 da LC 123 (Simples Nacional)"
+                $this->dom->addChild(
+                    $icmsSN,
+                    'pCredSN',
+                    $pCredSN,
+                    false,
+                    "[item $nItem] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
+                );
+                $this->dom->addChild(
+                    $icmsSN,
+                    'vCredICMSSN',
+                    $vCredICMSSN,
+                    false,
+                    "[item $nItem] Valor crédito do ICMS que pode ser aproveitado nos termos do art. 23 da LC 123 (Simples Nacional)"
                     );
                 break;
             case '102':
@@ -2409,14 +2406,14 @@ class MakeNFe extends BaseMake
                         $icmsSN,
                         'pCredSN',
                         $pCredSN,
-                        true,
+                        false,
                         "[item $nItem] Alíquota aplicável de cálculo do crédito (Simples Nacional)."
                     );
                     $this->dom->addChild(
                         $icmsSN,
                         'vCredICMSSN',
                         $vCredICMSSN,
-                        true,
+                        false,
                         "[item $nItem] Valor crédito do ICMS que pode ser aproveitado nos termos do art. 23 da LC 123 (Simples Nacional)"
                     );
                 break;
@@ -3604,7 +3601,7 @@ class MakeNFe extends BaseMake
         $tpIntegra = ''
     ) {
         //apenas para modelo 65
-        if ($this->mod == '65' && $tBand != '') {
+        if ($this->mod == '65' && ($tBand != '' || $tpIntegra == '2')) {
             $card = $this->dom->createElement("card");
             $this->dom->addChild(
                 $card,
@@ -3624,7 +3621,7 @@ class MakeNFe extends BaseMake
                 $card,
                 "tBand",
                 $tBand,
-                true,
+                false,
                 "Bandeira da operadora de cartão de crédito e/ou débito"
             );
             $this->dom->addChild(
@@ -4099,9 +4096,11 @@ class MakeNFe extends BaseMake
         //insere medicamentos
         if (!empty($this->aMed)) {
             foreach ($this->aMed as $nItem => $child) {
-                $prod = $this->aProd[$nItem];
-                $this->dom->appChild($prod, $child, "Inclusão do node medicamento");
-                $this->aProd[$nItem] = $prod;
+                foreach($child as $grandChild){
+                    $prod = $this->aProd[$nItem];
+                    $this->dom->appChild($prod, $grandChild, "Inclusão do node medicamento");
+                    $this->aProd[$nItem] = $prod;
+		}
             }
         }
         //insere armas
@@ -4172,11 +4171,9 @@ class MakeNFe extends BaseMake
             $this->total = $this->dom->createElement("total");
         }
         //ajuste de digitos dos campos totalizados
-        if ($this->aTotICMSUFDest['vICMSUFDest'] != '') {
-            $this->aTotICMSUFDest['vICMSUFDest'] = number_format($this->aTotICMSUFDest['vICMSUFDest'], 2, '.', '');
-            $this->aTotICMSUFDest['vICMSUFRemet'] = number_format($this->aTotICMSUFDest['vICMSUFRemet'], 2, '.', '');
-            $this->aTotICMSUFDest['vFCPUFDest'] = number_format($this->aTotICMSUFDest['vFCPUFDest'], 2, '.', '');
-        }
+        $this->aTotICMSUFDest['vICMSUFDest'] = number_format($this->aTotICMSUFDest['vICMSUFDest'], 2, '.', '');
+        $this->aTotICMSUFDest['vICMSUFRemet'] = number_format($this->aTotICMSUFDest['vICMSUFRemet'], 2, '.', '');
+        $this->aTotICMSUFDest['vFCPUFDest'] = number_format($this->aTotICMSUFDest['vFCPUFDest'], 2, '.', '');
     }
     
     /**
